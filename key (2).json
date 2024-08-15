@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "chinese-subtitles",
+  "private_key_id": "7134b9d78f591112a07e725bf3514fc31daabb00",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCTMW+Uvgp2Es1Q\nSjUiHoqx6i7+giVPDIrfgnhdCYqNRgbY/otYJeHMVItOdsUYRi0oSiLzmb8bIH5H\nQKmqJ3ABRIs5coziLPcsCkpaRXi/nm2PDyW3Ecf23IA9G2SUJyonriL3wckPpUEI\nVjIZIppKY+oX3rxa4pZkgzI7y7GbwZKzISccZ8OV7hK0zWWOcplxERwq2cJs6ndy\nQTqBIpoefvOot7ZS46sKX2rvVssbxy+I4tU7oCDvSysnKn/JChnFqWwbOD3DIUJx\nFqJq0M/SNVvUHU2XtGOBM7s0G2PlmTYFE1Ol0oVmJKeM2xEjvq/zxdjVLJmeVEBP\nurdtDS9zAgMBAAECggEAKKSN2tRerxuh9XmIElO8mEPBliT5iEo+TlkIQyhPSZL8\ncQ5YC47qOjFeBdxlr74w2d8ep4Tcb/EY7TO9pW4eTztN9h7bJ9iip1ZwEVz9amuk\ndMwJ7fLK9C8OedEGhKIL0ckTfrXTfq5ytoqWarpTQBc2nEC0YaQPQtG3HSuxbwAo\n09fYmQ877xpdy7WNwAUd/eZkU0WLs8ZCawaX082E89N1+tFqyH/UeoLd0P+rPKAa\n5p4gAHWb04B6+m35SYZwXuySCM0ShE2mvAZXSbRzws1z25cl3wi96anGHXgwX4pC\nxPqmvW+0t58rW40nADWDBhHJkeRQHceKpP7Yz13CAQKBgQDNOstOZBFWHaMMvFr9\n8MDB07zRYzuxpa5uvYfMjfr20WAzMgLoHGWdJ2ShBiWhCW17mgrIk8K40jL3FpaX\n2ZTCiIrebOp+wK6LTepDdp5uIUp0a4cCXDw5Tw+81KJcgIEmwwDU9n5bn00qR48Q\n8dLmAAm+u1F6CG7V6/ASqx1Z4wKBgQC3my73CbZUJHR9K43iq7APQOrIRDIcpJNR\nHocjyW5cb2fzMKj0xzSIpcL9PMALHUfw87In1mnLk/rMshBYUw42V6U3l652jwIQ\naHowGWDRoYI8nSupwiqSDkTROiY3RXsq4iMUL82uiiAa4kMjFwjxLED5OnrlnFoX\nmGV/NYIJMQKBgEdrmYrrShk08SQifGv5F6ucWw5nQUPeS6jgLl0iX977GEZYtig+\nkaIyLlPXRssW89Ha1rvcqBwXkoLoinnHz3wvdlxXfPelaFi0Qb0+j331+eov7WkF\n3jN3bxugx+v3EHsDy8tRCMIr2vfGtWQJNAK0qq+EkqMsQh4SIJbuk6VPAoGBAKuV\nrNhVDT2pK+vmDhztEgXPRxqNEL/P1ZSTkPuSvT5JJr4QlXTbzW5+arE6WsaIQLkf\nJTkxmYEU8+bj6X6Bb+C9G7vOVs6ZavZmjPnyXZbK9ukqgKmOuTXxe8KEMz6oAijb\nWKj+25rnnoVBOjjKyCKKltXTHxMBgPhYBVJScQmhAoGAXJPn2RINUgPbUYL+5ZuX\nrmAjdZD9h4PsW1BFpTtiVVm9keBoAI1mUhdIyMR4SBgaloa5Mmd10VIV70vDbMzY\nKZl0OtlvyYTYSeuihcOPfdksLdKalQ2LvLSUA923NpBrIfsE/vGK7rrvgjEpwHVi\niXRok/56Vbtr+fQjVz0jeXU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "subtitles@chinese-subtitles.iam.gserviceaccount.com",
+  "client_id": "102049027504579845184",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/subtitles%40chinese-subtitles.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
