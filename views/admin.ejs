@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">   
+        <link rel="shortcut icon" type="image/png" href="./images/login-logo.png"> 
+    <title>Management Account</title>
+    <!-- Add links to CSS files and JavaScript here if needed -->
+</head>
+
+<body>
+    <!-- ====================== flash message ============-->
+    <% if (error && error.length) {%>
+		<div class="toast error active">
+			<div class="toast-content">
+				<span class="material-symbols-outlined check">
+					check
+					</span>
+				<div class="message">
+					<span class="text text-2">
+						<%= error %>
+					</span>
+				</div>
+			</div>
+			<span class="material-symbols-outlined close">
+				close
+				</span>
+			<div class="progress active"></div>
+		</div>
+	<% } %>
+    <% if (success && success.length) {%>
+        <div class="toast active">
+          <div class="toast-content">
+            <span class="material-symbols-outlined check">
+				check
+				</span>
+            <div class="message">
+              <span class="text text-2">
+                <%= success %>
+              </span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined close">
+			close
+			</span>
+          <div class="progress active"></div>
+        </div>
+        <% } %>
+	<% if (error && error.length || success && success.length) { %>
+				<script>
+					//  ====================== flash message ===========
+					const toast = document.querySelector(".toast");
+					const closeIcon = document.querySelector(".close");
+					const progress = document.querySelector(".progress");
+					let timer1, timer2;
+					timer1 = setTimeout(() => {
+						toast.classList.remove("active");
+					}, 7000); //1s = 1000 milliseconds
+					timer2 = setTimeout(() => {
+						progress.classList.remove("active");
+					}, 7300);
+					closeIcon.addEventListener("click", () => {
+						toast.classList.remove("active");
+						setTimeout(() => {
+							progress.classList.remove("active");
+						}, 300);
+						clearTimeout(timer1);
+						clearTimeout(timer2);
+					});
+				</script>
+				<% } %>
+    <div class="overlay"></div>
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-logo">
+                <img src="./images/logo.png" alt="OAM AI Logo" class="logo" />
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item overview">
+                        <a href="/users">
+                            <span class="icon material-symbols-outlined">
+                                group
+                                </span>
+                                <span>Users</span>
+                        </a>
+                    </li>
+                    <!-- More nav items -->
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/logout">
+                    <span>Logout</span>
+                    <span class="icon material-symbols-outlined">
+                        arrow_right_alt
+                    </span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <span class="menu-toggle material-symbols-outlined">
+                menu
+            </span>
+        </header>
+        <div class="property-container">
+            <h2>Users List</h2>
+            <p>View all users and their generated files</p>
+        
+            <% if (users && users.length > 0) { %>
+                <ol>
+                    <% users.forEach(function(user) { %>
+                        <li>
+                            <h3><%= user.firstName %> <%= user.lastName %></h3>
+                            <p class="admin-users">Phone: <%= user.phoneNumber %></p>
+                            <p class="admin-users">Email: <%= user.username %> <!-- If you have an email field --></p>
+        
+                            <% if (user.files && user.files.length > 0) { %>
+                                <h4 class="generated-files-title">Generated Files:</h4>
+                                <ul class="file-list">
+                                    <% user.files.forEach(function(file) { %>
+                                        <li>
+                                            <a href="<%= file.url %>" download><%= file.filename %><span class="material-symbols-outlined">
+                                                download
+                                                </span></a>
+                                        </li>
+                                    <% }); %>
+                                </ul>
+                            <% } else { %>
+                                <p class="admin-users">No files generated yet.</p>
+                            <% } %>
+                        </li>
+                    <% }); %>
+                </ol>
+            <% } else { %>
+                <p>No users found.</p>
+            <% } %>
+        </div>
+        
+    </main>
+
+    <script src="./javascript/dashboard.js"></script>
+    <script src="./javascript/propertyValidation.js"></script>
+
+</body>
+
+</html>

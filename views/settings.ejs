@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/settings.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">    
+    <link rel="shortcut icon" type="image/png" href="./images/login-logo.png">
+    <title>Subtitle GPT - Settings</title>
+    <!-- Add links to CSS files and JavaScript here if needed -->
+</head>
+
+<body>
+    <!-- ====================== flash message ============-->
+    <% if (error && error.length) {%>
+		<div class="toast error active">
+			<div class="toast-content">
+				<span class="material-symbols-outlined check">
+					check
+					</span>
+				<div class="message">
+					<span class="text text-2">
+						<%= error %>
+					</span>
+				</div>
+			</div>
+			<span class="material-symbols-outlined close">
+				close
+				</span>
+			<div class="progress active"></div>
+		</div>
+	<% } %>
+    <% if (success && success.length) {%>
+        <div class="toast active">
+          <div class="toast-content">
+            <span class="material-symbols-outlined check">
+				check
+				</span>
+            <div class="message">
+              <span class="text text-2">
+                <%= success %>
+              </span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined close">
+			close
+			</span>
+          <div class="progress active"></div>
+        </div>
+        <% } %>
+	<% if (error && error.length || success && success.length) { %>
+				<script>
+					//  ====================== flash message ===========
+					const toast = document.querySelector(".toast");
+					const closeIcon = document.querySelector(".close");
+					const progress = document.querySelector(".progress");
+					let timer1, timer2;
+					timer1 = setTimeout(() => {
+						toast.classList.remove("active");
+					}, 7000); //1s = 1000 milliseconds
+					timer2 = setTimeout(() => {
+						progress.classList.remove("active");
+					}, 7300);
+					closeIcon.addEventListener("click", () => {
+						toast.classList.remove("active");
+						setTimeout(() => {
+							progress.classList.remove("active");
+						}, 300);
+						clearTimeout(timer1);
+						clearTimeout(timer2);
+					});
+				</script>
+				<% } %>
+    <div class="overlay"></div>
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-logo">
+                <img src="./images/logo.png" alt="OAM AI Logo" class="logo" />
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active overview">
+                        <a href="/dashboard">
+                            <span class="icon material-symbols-outlined">
+                                smart_toy
+                                </span>
+                            <span>Dashboard</span>
+                        </a> 
+                    </li>
+                    <li class="nav-item overview">
+                        <a href="/files">
+                            <span class="material-symbols-outlined">
+                                folder_open
+                                </span>
+                            <span>Generated Files</span>
+                        </a>
+                    </li>
+                    <li class="nav-item overview">
+                        <a href="/settings">
+                            <span class="icon material-symbols-outlined">
+                                settings
+                            </span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <!-- More nav items -->
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/logout">
+                    <span>Logout</span>
+                    <span class="icon material-symbols-outlined">
+                        arrow_right_alt
+                    </span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <span class="menu-toggle material-symbols-outlined">
+                menu
+            </span>
+            <div class="user-profile">
+                <a href="/settings" class="userHeader">
+                    <div class="user-greeting">
+                        <span class="morning">Hello,</span>
+                        <span class="user-name"><%= userInfo.firstName %> <%= userInfo.lastName %><span>.</span></span>
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <div class="card prop settings-container">
+            <div class="personal-info">
+                <h3>Account Settings</h3>
+                <form action="/settings/<%=userInfo._id%>/edit?_method=Put" method="post" id="info-form">
+                    <div class="form-body">
+                        <div class="error-container">
+                            <div class="input-field first-name-input">
+                                <label for="first-name">First Name</label>
+                                <input type="text" id="firstname" name="firstName" class="input" value="<%=userInfo.firstName%>">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-field last-name-input">
+                                <label for="last-name">Last Name</label>
+                                <input type="text" id="lastname" name="lastName" class="input" value="<%=userInfo.lastName%>">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-field email-input">
+                                <label for="email">Email</label>
+                                <input type="text" id="email" name="username" class="input" value="<%=userInfo.username%>">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-field phone-number-input">
+                                <label for="phone-number">Phone Number</label>
+                                <input type="text" id="phoneNumber" name="phoneNumber" class="input" value="<%=userInfo.phoneNumber%>">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <input type="submit" class="btn" value="Change">
+                    </div>
+                </form>
+            </div>
+            <div class="change-password">
+                <h3>Change Password</h3>
+                <form action="/settings/<%=userInfo._id%>/changepassword?_method=Put" method="post" id="password-form">
+                    <div class="form-body">
+                        <div class="error-container">
+                            <div class="input-field old-password-input">
+                                <label for="old-password">Old Password</label>
+                                <input type="password" id="old-password" name="oldPassword" class="input">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-field new-password-input">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" name="newPassword" class="input">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-field confirm-password-input">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" name="confirmPassword" class="input">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <input type="submit" class="btn" value="Change">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="./javascript/settingsValidation.js"></script>
+    <script src="./javascript/settings.js"></script>
+
+</body>
+
+</html>

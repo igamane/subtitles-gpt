@@ -1,0 +1,394 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    outline: none;
+    text-decoration: none;
+}
+body,
+html {
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #FEFDF5;
+}
+
+.background-image-part {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    max-width: 650px;
+    height: 100vh;
+    overflow: hidden;
+    background-image: url('../images/bg.webp');
+    background-size: cover;
+    background-position: center;
+}
+
+.content-part {
+    position: relative;
+    z-index: 2;
+    max-width: 650px;
+    width: 100%;
+    background: transparent;
+    border-radius: 10px;
+    margin: 0 15px;
+}
+.signup .content-part {
+    max-width: 850px;
+}
+.content-part.welcome {
+    max-width: 550px;
+}
+
+.login-form {
+    position: relative;
+    padding: 55px 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #FEFDF5;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.welcome .login-form {
+    width: 100%;
+}
+.welcome .login-form .login-inputs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.welcome .logo-image {
+    max-width: 200px;
+}
+
+.logo-part {
+    width: 30%;
+    max-width: 300px;
+    height: 100%;
+    align-self: end;
+    margin-bottom: 50px;
+}
+.forgot .logo-part {
+    width: 45%;
+}
+.forgot .login-details {
+    padding-right: 30px;
+}
+
+.logo-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.login-inputs h1 {
+    font-size: 32px;
+    font-family: "Hammersmith One", sans-serif;
+    font-weight: 400;
+    color: #000;
+    margin-bottom: 30px;
+    text-align: center;
+}
+.error-container {
+	margin-bottom: 12px;
+}
+.welcome .login-inputs h1 {
+    margin-bottom: 10px;
+    text-align: center;
+}
+.welcome-message {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 12px;
+}
+.welcome-message span{
+    font-size: 21px;
+}
+.login-details {
+    font-size: 16px;
+    color: #757575;
+    font-weight: 400;
+    margin-bottom: 36px;
+}
+.welcome .login-details {
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 15px;
+    font-weight: 400;
+    color: #A0A0A0;
+    margin-left: 14px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    border-radius: 52px;
+    transition: all 0.2s ease-in-out;
+    outline: none;
+}
+.input-field:focus {
+    border: 1px solid #3e6fda;
+}
+
+.login-button {
+    width: 100%;
+    padding: 10px;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 72px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+}
+.welcome .login-button {
+    min-width: 300px;
+    margin-top: 25px;
+    display: block;
+    text-align: center;
+}
+.forgot .login-controls {
+    margin-top: 35px;
+}
+.forgot form {
+    max-width: 300px;
+}
+
+.forgot-password-link {
+    display: block;
+    text-align: left;
+    margin-bottom: 10px;
+    color: #757575;
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 15px;
+    margin-bottom: 25px;
+    transition: all 0.2s ease;
+}
+.forgot-password-link:hover {
+    color: #3e6fda;
+}
+
+.signup-part {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+}
+
+.signup-link {
+    font-weight: 600;
+    color: #000000;
+}
+
+.errormessage {
+    width: 100%;
+    text-align: left;
+    padding-left: 15px;
+    font-weight: 500;
+    font-size: 12px;
+    padding-top: 3px;
+    color: rgb(247, 34, 34);
+}
+.error .input-field {
+    border: 1px solid rgb(247, 34, 34);
+}
+
+/* ====================== flash message ================= */
+.toast{
+    position: fixed;
+    top: 10px;
+    left: 15px;
+    border-radius: 12px;
+    background: #fff;
+    padding: 20px 20px 20px 25px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    border-right: 5px solid rgb(31, 233, 31);
+    overflow: hidden;
+    transform: translateX(calc(-100% - 30px));
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35);
+    z-index: 1020;
+}
+.toast.error {
+    border-right: 5px solid rgb(235, 30, 30);
+}
+
+.toast.active{
+    transform: translateX(0%);
+}
+
+.toast .toast-content{
+    display: flex;
+    align-items: center;
+}
+
+.toast-content .check{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    width: 35px;
+    background-color: rgb(31, 233, 31);
+    color: #fff;
+    font-size: 20px;
+    border-radius: 50%;
+}
+.toast.error .toast-content .check{
+    background-color: rgb(235, 30, 30);
+}
+
+.toast-content .message{
+    display: flex;
+    flex-direction: column;
+    margin: 0 20px;
+}
+
+.message .text{
+    font-size: 16px;
+    font-weight: 400;;
+    color: #666666;
+}
+
+.message .text.text-1{
+    font-weight: 400;
+    color: #333;
+}
+
+.toast .close{
+    position: absolute;
+    top: 10px;
+    right: 5px;
+    padding: 5px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.toast .close:hover{
+    opacity: 1;
+}
+
+.toast .progress{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: #ddd;
+}
+
+.toast .progress:before{
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgb(31, 233, 31);
+}
+.toast.error .progress:before{
+    background-color: rgb(235, 30, 30);
+}
+
+.signup .login-inputs {
+	width: 70%;
+}
+.signup .login-inputs form{
+	display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.signup .login-inputs form .error-container{
+	width: calc(50% - 8px);
+}
+.signup .login-inputs form .error-container.email{
+	width: 100%;
+}
+.signup .login-controls {
+	width: 100%;
+	display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.signup .forgot-password-link {
+	width: 100%;
+}
+.signup .password-wraper {
+	width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+.signup .login-button {
+	max-width: 300px;
+}
+
+@keyframes progress {
+    100%{
+        left: 100%;
+    }
+}
+
+.progress.active:before{
+    animation: progress 7s linear forwards;
+}
+
+@media (max-width: 650px) {
+    .logo-part {
+        align-self: center;
+    }
+    .login-form {
+        padding-right: 10px;
+    }
+    .forgot .login-details {
+        text-align: center;
+    }
+}
+@media (max-width: 550px) {
+    .logo-part {
+        display: none;
+    }
+    .login-inputs {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+    .login-inputs form {
+        width: 100%;
+    }
+    .signup .login-inputs { 
+        width: 100%;
+    }
+    .signup .login-inputs form .error-container, .signup .login-inputs form .error-container.email {
+        width: 100%;
+    }
+    .signup .password-wraper {
+        flex-direction: column;
+    }
+    .login-form {
+        padding-right: 30px;
+        padding: 55px 30px;
+    }
+
+}

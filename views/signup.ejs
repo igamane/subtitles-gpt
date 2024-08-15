@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtitle GPT - Sign Up</title>
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="./css/login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- ====================== flash message ============-->
+    <% if (error && error.length) {%>
+		<div class="toast error active">
+			<div class="toast-content">
+				<span class="material-symbols-outlined check">
+					check
+					</span>
+				<div class="message">
+					<span class="text text-2">
+						<%= error %>
+					</span>
+				</div>
+			</div>
+			<span class="material-symbols-outlined close">
+				close
+				</span>
+			<div class="progress active"></div>
+		</div>
+	<% } %>
+    <% if (success && success.length) {%>
+        <div class="toast active">
+          <div class="toast-content">
+            <span class="material-symbols-outlined check">
+				check
+				</span>
+            <div class="message">
+              <span class="text text-2">
+                <%= success %>
+              </span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined close">
+			close
+			</span>
+          <div class="progress active"></div>
+        </div>
+        <% } %>
+	<% if (error && error.length || success && success.length) { %>
+				<script>
+					//  ====================== flash message ===========
+					const toast = document.querySelector(".toast");
+					const closeIcon = document.querySelector(".close");
+					const progress = document.querySelector(".progress");
+					let timer1, timer2;
+					timer1 = setTimeout(() => {
+						toast.classList.remove("active");
+					}, 7000); //1s = 1000 milliseconds
+					timer2 = setTimeout(() => {
+						progress.classList.remove("active");
+					}, 7300);
+					closeIcon.addEventListener("click", () => {
+						toast.classList.remove("active");
+						setTimeout(() => {
+							progress.classList.remove("active");
+						}, 300);
+						clearTimeout(timer1);
+						clearTimeout(timer2);
+					});
+				</script>
+				<% } %>
+    <div class="container">
+
+        <div class="background-image-part">
+        </div>
+
+        <div class="content-part signup">
+            <div class="login-form">
+                <div class="login-inputs">
+                    <h1>Subtitle GPT</h1>
+                    <p class="welcome-message"><span>👋🏼</span> Hello!</p>
+                    <p class="login-details">Enter your Sign up details below</p>
+
+                    <form action="/signup" method="post" id="form" novalidate>
+                        <div class="error-container">
+                            <div class="input-group">
+                                <label for="firstname">First Name</label>
+                                <input type="text" id="firstname" name="firstName" required placeholder="Enter your first name"
+                                    class="input-field">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-group">
+                                <label for="lastname">Last Name</label>
+                                <input type="text" id="lastname" name="lastName" required placeholder="Enter your last name"
+                                    class="input-field">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="username" required placeholder="Enter your email"
+                                    class="input-field">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+                        <div class="error-container">
+                            <div class="input-group">
+                                <label for="phoneNumber">Phone Number</label>
+                                <input type="text" id="phoneNumber" name="phoneNumber" required placeholder="Enter your phone number"
+                                    class="input-field">
+                            </div>
+                            <div class="errormessage"></div>
+                        </div>
+						<div class="password-wraper">
+							<div class="error-container">
+								<div class="input-group">
+									<label for="password">Password</label>
+									<input type="password" id="password" name="password" required
+										placeholder="Enter your password" class="input-field">
+								</div>
+								<div class="errormessage"></div>
+							</div>
+							<div class="error-container">
+								<div class="input-group">
+									<label for="password2">Confirm Password</label>
+									<input type="password" id="password2" required
+										placeholder="Enter your password" class="input-field">
+								</div>
+								<div class="errormessage"></div>
+							</div>
+						</div>
+
+                        <div class="login-controls">
+                            <button type="submit" class="login-button">SIGN UP</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="logo-part">
+                    <img src="./images/login-logo.png" alt="Logo" class="logo-image">
+                </div>
+            </div>
+            <div class="signup-part">
+                <p>You have an account? <a href="/login" class="signup-link">Log In</a></p>
+            </div>
+        </div>
+
+    </div>
+
+	<script src="./javascript/signupvalidation.js"></script>
+
+</body>
+
+</html>
