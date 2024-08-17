@@ -1,7 +1,0 @@
-- upload to github
-- host on render
-- get openai key
-- configure email
-- admin email
-- mongodb
-- google cloud storage

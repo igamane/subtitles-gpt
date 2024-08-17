@@ -7,6 +7,7 @@ const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
 const User = require('./models/user');
+const Prompt = require('./models/prompt');
 const bodyParser = require('body-parser');
 const port = 4000;
 const ejsMate = require('ejs-mate');
@@ -429,13 +430,21 @@ function validateFunctionArgs(revisedTranslation, expectedRowCount) {
 
 async function processFile(firstThreeRows, originalRows, revisedData) {
     try {
+        // Retrieve the active prompt from the database
+        const activePromptDoc = await Prompt.findOne({ isSelected: true });
+        
+        // Set the active prompt or use the default if no active prompt is available
+        const activePrompt = activePromptDoc ? activePromptDoc.prompt : "Please proofread and edit the subtitle translation for Traditional Chinese Taiwan. Make sure it's Chinese Taiwan, not Traditional Chinese Hong Kong. Please explain the changes and their type in english not chinese (typos, grammar, accuracy, fluency, formatting). Your response should be formatted in a table using the 'create_revised_translation_table' function, containing 3 columns: Edited Translation, Explanation in english, Edit Type in english.";
+
         let translationText = firstThreeRows.map((row, index) => {
             return `${index + 1}. ${row.Source}\n${row.Translation}`;
         }).join("\n\n");
 
         console.log(translationText);
 
-        const prompt = `${translationText}\n\nPlease proofread and edit the subtitle translation for Traditional Chinese Taiwan. Make sure it's Chinese Taiwan, not Traditional Chinese Hong Kong. Please explain the changes and their type in english not chinese (typos, grammar, accuracy, fluency, formatting). Your response should be formatted in a table using the 'create_revised_translation_table' function, containing 3 columns: Edited Translation, Explanation in english, Edit Type in english.`;
+        const prompt = `${translationText}\n\n${activePrompt}`;
+
+        console.log(prompt);
 
         let messages = [
             {
@@ -747,6 +756,76 @@ app.get('/admin', isAdmin, async (req, res) => {
         res.status(500).json({ message: 'Internal server error.' });
     }
 })
+app.get('/prompt', isAdmin, async (req, res) => {
+    try {
+        // Check if the database is empty
+        const promptCount = await Prompt.countDocuments({});
+        
+        if (promptCount === 0) {
+            // If empty, insert the first prompt
+            const firstPrompt = new Prompt({
+                prompt: "Please proofread and edit the subtitle translation for Traditional Chinese Taiwan. Make sure it's Chinese Taiwan, not Traditional Chinese Hong Kong. Please explain the changes and their type in english not chinese (typos, grammar, accuracy, fluency, formatting). Your response should be formatted in a table using the 'create_revised_translation_table' function, containing 3 columns: Edited Translation, Explanation in english, Edit Type in english.",
+                isSelected: true
+            });
+
+            await firstPrompt.save();
+        }
+
+        // Fetch all prompts from the database
+        const prompts = await Prompt.find({});
+
+        // Render the 'prompt' view with the retrieved prompts
+        res.render('prompt', { prompts });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+
+app.post('/prompt', isAdmin, async (req, res) => {
+    try {
+        const { prompt } = req.body;
+
+        // Create a new Prompt document
+        const newPrompt = new Prompt({
+            prompt: prompt,
+            isSelected: false // Default value
+        });
+
+        // Save the document to the database
+        await newPrompt.save();
+
+        // Redirect or send a response
+        res.redirect('/prompt'); // Redirect to the homepage or another route
+    } catch (error) {
+        console.error('Error creating prompt:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.put('/prompt/:id', async (req, res) => {
+    try {
+        const { prompt, isActive } = req.body;
+        
+        if (isActive === 'on') {
+            // If the current prompt is being activated, deactivate all other prompts
+            await Prompt.updateMany({}, { isSelected: false });
+        }
+
+        // Find the prompt by ID and update its fields
+        await Prompt.findByIdAndUpdate(req.params.id, {
+            prompt: prompt,
+            isSelected: isActive === 'on' // Convert checkbox value to boolean
+        });
+
+        // Redirect or send a response after updating
+        res.redirect('/prompt');
+    } catch (error) {
+        console.error('Error updating prompt:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
