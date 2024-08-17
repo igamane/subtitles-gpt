@@ -445,8 +445,6 @@ async function processFile(firstThreeRows, originalRows, revisedData) {
 
         const prompt = `${translationText}\n\n${activePrompt}`;
 
-        console.log(prompt);
-
         let messages = [
             {
                 "role": "user",
