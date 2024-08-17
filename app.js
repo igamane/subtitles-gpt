@@ -35,6 +35,7 @@ const { threadId } = require('worker_threads');
 const pipeline = promisify(require('stream').pipeline);
 const multer = require('multer');
 const xlsx = require('xlsx');
+const ExcelJS = require('exceljs');
 const fs = require('fs');
 const cheerio = require('cheerio');
 const { storage, bucketName } = require('./storage');
@@ -552,6 +553,16 @@ function sendProgressUpdate(processedLines, totalLines) {
     clients.forEach(client => client.write(`data: ${progressMessage}\n\n`));
 }
 
+// Function to check if the cell value should be bold
+function shouldBeBold(value) {
+    const boldWords = ['grammar', 'accuracy', 'typos', 'Grammar', 'Accuracy', 'Typos'];
+
+    // Split the cell value by commas and trim any whitespace
+    const words = value.split(',').map(word => word.trim());
+
+    // Check if any of the words in the cell match the bold words
+    return words.some(word => boldWords.includes(word));
+}
 
 
 app.post('/excel-file', upload.single('file'), async (req, res) => {
@@ -565,6 +576,7 @@ app.post('/excel-file', upload.single('file'), async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Read the uploaded Excel file
         const workbook = xlsx.readFile(req.file.path);
         const sheetName = workbook.SheetNames[0];
         const worksheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -580,29 +592,45 @@ app.post('/excel-file', upload.single('file'), async (req, res) => {
                 Source: row['Source'] || 'N/A', // Fallback value for source
                 Translation: row['Translation'] || 'N/A' // Fallback value for translation
             }));
-        
+
             // Process the batch
             await processFile(firstThreeRows, batch, revisedData);
-        
+
             i += 3; // Move to the next set of rows
 
             // Send progress update
             sendProgressUpdate(i, totalLines);
         }
 
-        // Create a new workbook and sheet with the revised data
-        const newWorkbook = xlsx.utils.book_new();
-        const newWorksheet = xlsx.utils.json_to_sheet(revisedData);
+        // Create an XLSX workbook and sheet from the revised data
+        const xlsxWorkbook = xlsx.utils.book_new();
+        const xlsxWorksheet = xlsx.utils.json_to_sheet(revisedData);
+        xlsx.utils.book_append_sheet(xlsxWorkbook, xlsxWorksheet, 'Revised Translations');
 
-        xlsx.utils.book_append_sheet(newWorkbook, newWorksheet, 'Revised Translations');
+        // Write the XLSX workbook to a temporary file
+        const tempXlsxPath = `/tmp/revised-file.xlsx`;
+        xlsx.writeFile(xlsxWorkbook, tempXlsxPath);
 
-        // Generate a unique filename using user's first and last name
+        // Now load the temporary XLSX file into ExcelJS for further formatting
+        const excelWorkbook = new ExcelJS.Workbook();
+        await excelWorkbook.xlsx.readFile(tempXlsxPath);
+        const worksheetExcelJS = excelWorkbook.getWorksheet('Revised Translations');
+
+        // Apply bold formatting where necessary
+        worksheetExcelJS.eachRow((row, rowIndex) => {
+            row.eachCell({ includeEmpty: true }, (cell, colIndex) => {
+                if (shouldBeBold(cell.value)) {
+                    cell.font = { bold: true };
+                }
+            });
+        });
+
+        // Generate a unique filename using the user's first and last name
         const uniqueFilename = generateUniqueFilename(user);
-
         const tempFilePath = `/tmp/${uniqueFilename}`;
 
-        // Save the file temporarily
-        xlsx.writeFile(newWorkbook, tempFilePath);
+        // Save the ExcelJS workbook to the temp file path
+        await excelWorkbook.xlsx.writeFile(tempFilePath);
 
         // Upload to Google Cloud Storage
         const fileUrl = await uploadToGoogleCloud(tempFilePath, uniqueFilename);
@@ -645,16 +673,15 @@ app.post('/html-file', upload.single('file'), async (req, res) => {
         // Get the userId from the request
         const userId = req.user._id;
 
-        
         // Fetch user from the database
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        
+
         // Load the uploaded HTML file
         const htmlContent = fs.readFileSync(req.file.path, 'utf-8');
-        
+
         // Extract subtitles from the HTML content
         const worksheet = extractSubtitlesFromHTML(htmlContent);
 
@@ -669,34 +696,48 @@ app.post('/html-file', upload.single('file'), async (req, res) => {
                 Source: row['Source'] || 'N/A', // Fallback value for source
                 Translation: row['Translation'] || 'N/A' // Fallback value for translation
             }));
-        
+
             // Process the batch
             await processFile(firstThreeRows, batch, revisedData);
-        
+
             i += 3; // Move to the next set of rows
 
             // Send progress update
             sendProgressUpdate(i, totalLines);
         }
 
-        // Create a new workbook and sheet with the revised data
-        const newWorkbook = xlsx.utils.book_new();
-        const newWorksheet = xlsx.utils.json_to_sheet(revisedData);
+        // Create an XLSX workbook and sheet from the revised data
+        const xlsxWorkbook = xlsx.utils.book_new();
+        const xlsxWorksheet = xlsx.utils.json_to_sheet(revisedData);
+        xlsx.utils.book_append_sheet(xlsxWorkbook, xlsxWorksheet, 'Revised Translations');
 
-        xlsx.utils.book_append_sheet(newWorkbook, newWorksheet, 'Revised Translations');
+        // Write the XLSX workbook to a temporary file
+        const tempXlsxPath = `/tmp/revised-file.xlsx`;
+        xlsx.writeFile(xlsxWorkbook, tempXlsxPath);
 
-        // Generate a unique filename using user's first and last name
+        // Now load the temporary XLSX file into ExcelJS for further formatting
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(tempXlsxPath);
+        const worksheetExcelJS = workbook.getWorksheet('Revised Translations');
+
+        // Apply bold formatting where necessary
+        worksheetExcelJS.eachRow((row, rowIndex) => {
+            row.eachCell({ includeEmpty: true }, (cell, colIndex) => {
+                if (shouldBeBold(cell.value)) {
+                    cell.font = { bold: true };
+                }
+            });
+        });
+
+        // Generate a unique filename using the user's first and last name
         const uniqueFilename = generateUniqueFilename(user);
-
         const tempFilePath = `/tmp/${uniqueFilename}`;
 
-        // Save the file temporarily
-        xlsx.writeFile(newWorkbook, tempFilePath);
+        // Save the ExcelJS workbook to the temp file path
+        await workbook.xlsx.writeFile(tempFilePath);
 
         // Upload to Google Cloud Storage
         const fileUrl = await uploadToGoogleCloud(tempFilePath, uniqueFilename);
-
-        console.log(fileUrl);
 
         // Attach the file URL to the user in MongoDB
         await User.updateOne(
