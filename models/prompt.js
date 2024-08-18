@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
-
+const { ObjectId } = require('mongoose').Types;
 
 const PromptSchema = new schema({
     prompt: {
+        type: String,
+        require: true,
+    },
+    name: {
         type: String,
         require: true,
     },
@@ -11,6 +15,11 @@ const PromptSchema = new schema({
         type: Boolean,
         require: true,
         default: false
+    },
+    user: {
+        type: ObjectId,
+        ref: 'User', // Reference to the User model
+        required: true, // Make this field required to ensure association
     }
 },
     { timestamps: true }

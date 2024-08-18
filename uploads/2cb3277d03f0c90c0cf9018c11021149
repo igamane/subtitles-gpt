@@ -1,0 +1,359 @@
+﻿<head>
+      <script>
+    console.log("Loading started...");
+</script>
+<script>
+var prevScrollpos=window.pageYOffset;
+window.onscroll=function() {
+    var currentScrollPos=window.pageYOffset;
+    if (prevScrollpos > currentScrollPos) {
+        document.getElementById("navbar").style.top="0";
+    }
+    else {
+        document.getElementById("navbar").style.top="-50px";
+    }
+    prevScrollpos=currentScrollPos;
+}
+
+
+function loadScript(src){
+var jScript = document.createElement('script')
+jScript.type = "text/javascript";
+jScript.src = src.trim();
+document.body.appendChild(jScript)
+}
+
+document.addEventListener('DOMContentLoaded', function load() {
+    if (!window.jQuery) return setTimeout(load, 50);
+        console.log("jQuery and JsDiff are loaded! Executing main.");
+    main();
+}, false);
+
+function main(){
+document.addEventListener('paste', function(e) {
+  var pasteStatus = document.getElementById("pasteReady");
+  pasteStatus.innerText = "got paste!";
+  pasteStatus.style.opacity = 0.01;
+  fade("in",500,pasteStatus);
+  var earlier_html = e.clipboardData.getData('text/html');
+  //console.log(earlier_html);
+  proceedWithCompare(earlier_html);
+}, {once: true} ); console.log("Listening for paste!");
+
+var oldRows = document.getElementsByTagName("tr")
+
+function fade(type, ms, el, remove = false) {
+    var isIn = type === 'in',
+        opacity = isIn ? 0 : 1,
+        interval = 20,
+        duration = ms,
+        gap = interval / duration
+
+    if (isIn) {
+        el.style.display = 'inline'
+        el.style.opacity = opacity
+    }
+
+    function func() {
+
+        opacity = isIn ? opacity + gap : opacity - gap
+        el.style.opacity = opacity
+
+        if (opacity <= 0) { remove ? el.remove() : el.style.display = 'none' }
+        if (opacity <= 0 || opacity >= 1) window.clearInterval(fading)
+    }
+
+    var fading = window.setInterval(func, interval)
+}
+
+
+var b = document.querySelector("#the-button")
+b.innerText = "DIFF ENGINE ON";
+b.style.color = "gold";
+b.style.fontWeight = "bold";
+b.style.backgroundColor = "brightgreen";
+fade("in",700,b,false);
+var p = document.createElement('span');
+p.innerText = "paste it!";
+p.style = "position: relative; top: 1px; left: 13px; font-weight: bold; color: ivory; opacity: 0.5;"
+p.id = "pasteReady";
+b.insertAdjacentElement("afterEnd",p);
+
+
+function proceedWithCompare(document_html){
+
+    function createTextSheetFromRows(rows,childNumber){
+    var text = ""
+        for(row of rows){
+        text += row.children[childNumber].innerText+"\n\r\r\r\n\r\n"
+        }
+    return text
+    }
+
+var document_new = new DOMParser().parseFromString(document_html, "text/html");
+
+newRows = document_new.body.getElementsByTagName("tr")
+
+ var pasteStatus = document.getElementById("pasteReady");
+
+if(newRows.length == 0)
+{
+ pasteStatus.innerText = "paste error!";
+ pasteStatus.style.opacity = 0.01;
+ pasteStatus.style.color = "red";
+ fade("in",500,pasteStatus,false);   
+} else {
+pasteStatus.innerText = "use Alt+Z";
+ pasteStatus.style.opacity = 0.01;
+ pasteStatus.style.color = "green";
+  b.innerText = "DIFF SUCCESS";
+ b.style.opacity = 0.3;
+ fade("in",500,pasteStatus,false);   
+}
+
+
+function diffAndPopulateCell(oldRows,newRows,dmethod,cellNumber)
+{
+    
+oldRowsText = createTextSheetFromRows(oldRows, cellNumber) 
+
+newRowsText = createTextSheetFromRows(newRows, cellNumber) 
+
+switch(dmethod) {
+    case "1" : diff = JsDiff.diffWords(oldRowsText, newRowsText); break;
+    case "2" : diff = JsDiff.diffLines(oldRowsText, newRowsText); break;
+    case "3" : diff = JsDiff.diffChars(oldRowsText, newRowsText); break;
+    case "4" : diff = JsDiff.diffWordsWithSpace(oldRowsText, newRowsText); break;
+    case "5" : diff = JsDiff.diffTrimmedLines(oldRowsText, newRowsText); break;
+    case "6" : diff = JsDiff.diffSentences(oldRowsText, newRowsText); break;
+    default: diff = JsDiff.diffWordsWithSpace(oldRowsText, newRowsText);}
+
+textHolder = document.createElement("pre")
+fragment = document.createDocumentFragment();
+
+diff.forEach((part) => { const color = part.added ? "#26ff00" :   part.removed ? 'red' : '#808080';
+    var class_name = part.added ? "goody" : part.removed ? 'bady' : 'neutry';
+    var font_weight = part.added ? "bold" : part.removed ? "lighter" : "normal";
+    span = document.createElement('span'); 
+    span.style.color = color;
+    span.className = class_name;
+    span.style.fontWeight = font_weight;
+    part.removed && (span.style.textDecoration = "line-through");
+    part.removed && (span.style.opacity=0.9);
+  span.appendChild(document.createTextNode(part.value));
+  fragment.appendChild(span); 
+});
+
+textHolder.appendChild(fragment)
+eval("c" + cellNumber + ".appendChild(textHolder)")
+}
+
+
+
+var table = document.querySelector("table")
+
+var newTable = document.createElement("table")
+var row = newTable.insertRow(0)
+var c0 = row.insertCell(0)
+var c1 = row.insertCell(1)
+var c2 = row.insertCell(2)
+newTable.style.width = "80%"; 
+newTable.style.margin = "auto";
+newTable.style.contenteditable =true;
+
+var dMeth = prompt("Select comparison mode: 1. Words, 2. Lines, 3. Characters\n4. Words-and-Whitespace, 5. Trimmed-Lines, 6. Sentences","1");
+
+
+diffAndPopulateCell(oldRows,newRows,3,0)
+var cues = [];
+cues = c0.innerHTML.split("\n\r\r\r\n\r\n")
+
+diffAndPopulateCell(oldRows,newRows,dMeth,1)
+var originals = [];
+originals = c1.innerHTML.split("\n\r\r\r\n\r\n")
+
+diffAndPopulateCell(oldRows,newRows,dMeth,2)
+var translations = [];
+translations = c2.innerHTML.split("\n\r\r\r\n\r\n")
+
+if(originals.length > translations.length) {var lim=originals.length} else {var lim=translations.length};  var newHtml='<table><tbody>'; for(a=1; a<lim; a++){ newHtml += '<tr><td><pre>' + cues[a] + '</pre></td><td><pre>' + originals[a] + '</pre></td><td><pre>' + translations[a] +'</pre></td></tr>'; } newHtml += "</tbody></table>"
+
+document.querySelector("table").outerHTML = newHtml
+var visibility = "both";
+
+document.onkeydown = function(event){
+      if (event.altKey && event.keyCode == 90) {
+        //Alt+Z, simultaneously.
+
+      switch (visibility) {
+      case "both":  for(ea of document.getElementsByClassName("bady")) { fade('out',100,ea,false) }; visibility = "only_goodies";
+                    break;
+      case "only_goodies": for(ea of document.getElementsByClassName("bady")) { fade('in',100,ea,false) }
+                           for(ea of document.getElementsByClassName("goody")) { fade('out',100,ea,false) }
+                           visibility = "only_mistakes"
+                           break;
+      case "only_mistakes":  for(ea of document.getElementsByClassName("goody")) { fade('in',100,ea,false) }
+                           visibility = "both"
+                            break;
+      default: for(ea of document.getElementsByClassName("bady")) { fade('in',100,ea,false) }
+                           for(ea of document.getElementsByClassName("goody")) { fade('in',100,ea,false) }
+                            visibility = "both"}}}}}</script>
+  <style>#navbar {
+      background-color: #333;
+      top: 0;
+      position: fixed;
+      width: 80%;
+      left: 10%;
+      transition: top 0.5s;
+      margin-left: auto;
+      margin-right: auto;
+      opacity: 0.7;
+  }
+
+  #navbar a {
+      float: left;
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 5px;
+      text-decoration: none;
+  }
+
+  #navbar a:hover {
+      background-color: #ddd;
+      color: black;
+  }
+
+  body {
+      background: #212121;
+      color: grey;
+  }
+
+  table {
+      width: 80%;
+      table-layout: fixed;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 60px;
+          border-collapse: collapse;
+
+  }
+
+  thead,
+  tbody,
+  td,
+  tr
+   {
+      display: block;
+      font-family: monospace; 
+
+  }
+
+  tr {
+
+  background-image: linear-gradient(to right, darkgrey 30%, rgba(255,255,255,0) 0%);
+  background-position: bottom;
+  background-size: 3px 1px;
+  background-repeat: repeat-x;
+  }
+
+  tr:after {
+      content: ' ';
+      display: block;
+      visibility: hidden;
+      clear: both;
+          border-bottom: 1px solid #ccc;
+
+  }
+
+    #titleinfo {
+              color: #fffff0;
+              font-weight: bolder;
+              font-style: normal;
+              font-family: Roboto;
+              font-size: 150%;
+              margin-left: 55px;
+              margin-top: 8px;
+              flex-shrink: 1;
+              width: 800px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: inline-block;
+              }
+
+
+  thead th {
+      height: 30px;
+      /*text-align: left;*/
+  }
+
+
+  thead {
+      /* fallback */
+  }
+
+  tbody td,
+  thead th {
+      width: 33%;
+      float: left;
+  }
+
+  tr:hover {
+      color: darkgrey;
+  }
+
+
+      </style>
+  <head><body>
+           <div id="navbar">
+                <a href="https://timedtext.netflixstudios.com/editor?requestRef=clq%3Aorigination%3A2a213391-987a-49f7-ad55-613d16940b80"><img id="logonetflix" width="auto" height="32" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" title="Backup made on 2024-07-02"></a>
+                <span id="titleinfo" title="(2303336) Witnessed: The Manhattan Alien Abduction: Season 1: “Part 2”, zh-Hant, Subtitle">(2303336) Witnessed: The Manhattan Alien Abduction: Season 1: “Part 2”, zh-Hant, Subtitle (2024-07-02)</span>              <button type="button" id="the-button" class="btn btn-raised" style="background-color: darkgreen; color: white; opacity: 0.3; position: relative; top: -18px; left: 105px;" onclick="loadScript('https://katzurki.github.io/nettufurikusu/diff.js')">DIFF ENGINE OFF</button></div>
+  <table>
+      <thead>
+      <tr>
+          <th><b><u>In-cue/Out-cue</b></u></th>
+          <th><b><u>Source</b></u></th>
+          <th><b><u>Translation</b></u></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr><td><pre>00:00:02,044
+00:00:08,719</pre></td><td><pre>NEW YORK CITY<b></b></pre></td><td><pre>（紐約市）</pre></td></tr>
+<tr><td><pre>00:00:05,298
+00:00:06,633</pre></td><td><pre>The truth is the truth.</pre></td><td><pre>現實就是現實</pre></td></tr>
+<tr><td><pre>00:00:06,717
+00:00:09,428</pre></td><td><pre>You can't change it.
+You have to deal with it.</pre></td><td><pre>你無法改變，你必須面對它</pre></td></tr>
+<tr><td><pre>00:00:10,096
+00:00:13,183</pre></td><td><pre>It takes a lot of courage
+to be able to talk about this without…</pre></td><td><pre>談論這事
+需要很大的勇氣，同時還不…</pre></td></tr>
+<tr><td><pre>00:00:14,977
+00:00:18,064</pre></td><td><pre>without feeling strange,
+but it's the truth.</pre></td><td><pre>不會覺得奇怪，但這是事實</pre></td></tr>
+<tr><td><pre>00:00:43,888
+00:00:47,810</pre></td><td><pre>A NETFLIX DOCUMENTARY SERIES<b></b>
+I'd been working at the New York Post
+delivering newspaper out in Queens</pre></td><td><pre>我曾在《紐約郵報》工作
+在皇后區送報紙</pre></td></tr>
+<tr><td><pre>00:00:47,893
+00:00:49,437</pre></td><td><pre>for over 20 years.</pre></td><td><pre>有20多年</pre></td></tr>
+<tr><td><pre>00:00:50,313
+00:00:52,482</pre></td><td><pre>And on the way back,
+I could take the bridge.</pre></td><td><pre>在回家的路上，我可以過橋</pre></td></tr>
+<tr><td><pre>00:00:52,023
+00:00:57,655</pre></td><td><pre>NOVEMBER 30, 1989<b></b></pre></td><td><pre>（1989年11月30日）</pre></td></tr>
+<tr><td><pre>00:01:08,252
+00:01:10,463</pre></td><td><pre>I was confronted with a blackout,</pre></td><td><pre>有一次，我遇到電瓶沒電</pre></td></tr>
+<tr><td><pre>00:01:10,964
+00:01:12,215</pre></td><td><pre>the truck dying.</pre></td><td><pre>車啓動不了</pre></td></tr>
+<tr><td><pre>00:01:14,927
+00:01:16,429</pre></td><td><pre>And then all of a sudden,</pre></td><td><pre>然後突然間</pre></td></tr>
+<tr><td><pre>00:01:17,347
+00:01:19,641</pre></td><td><pre>I saw a bunch of lights in front of me.</pre></td><td><pre>我看到前面有一束光</pre></td></tr>
+<tr><td><pre>00:01:21,936
+00:01:24,022</pre></td><td><pre>I didn't know what I was looking at.</pre></td><td><pre>我不知道我看到的是什麼</pre></td></tr>
+<tr><td><pre>00:01:25,982
+00:01:27,735</pre></td><td><pre>And then I saw what it was.</pre></td><td><pre>然後我看清楚了</pre></td></tr>

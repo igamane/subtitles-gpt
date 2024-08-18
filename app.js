@@ -388,11 +388,15 @@ app.put('/settings/:id/changepassword', isAuthenticated, catchAsync(async (req, 
 app.get('/dashboard', isAuthenticated, async (req, res) => {
     try {
         const userInfo = await User.findById(req.user._id);
+        let isAdmin = false;
+        if (userInfo.username == admin) {
+            isAdmin = true;
+        }
         if (!userInfo) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        res.render('userDashboard', { userInfo });
+        res.render('userDashboard', { userInfo, isAdmin });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Internal server error.' });
@@ -429,13 +433,10 @@ function validateFunctionArgs(revisedTranslation, expectedRowCount) {
 }
 
 
-async function processFile(firstThreeRows, originalRows, revisedData) {
+async function processFile(firstThreeRows, originalRows, revisedData, activePrompt) {
     try {
-        // Retrieve the active prompt from the database
-        const activePromptDoc = await Prompt.findOne({ isSelected: true });
-        
         // Set the active prompt or use the default if no active prompt is available
-        const activePrompt = activePromptDoc ? activePromptDoc.prompt : "Please proofread and edit the subtitle translation for Traditional Chinese Taiwan. Make sure it's Chinese Taiwan, not Traditional Chinese Hong Kong. Please explain the changes and their type in english not chinese (typos, grammar, accuracy, fluency, formatting). Your response should be formatted in a table using the 'create_revised_translation_table' function, containing 3 columns: Edited Translation, Explanation in english, Edit Type in english.";
+        activePromptText = activePrompt ? activePrompt.prompt : "Please proofread and edit the subtitle translation for Traditional Chinese Taiwan. Make sure it's Chinese Taiwan, not Traditional Chinese Hong Kong. Please explain the changes and their type in english not chinese (typos, grammar, accuracy, fluency, formatting). Your response should be formatted in a table using the 'create_revised_translation_table' function, containing 3 columns: Edited Translation, Explanation in english, Edit Type in english.";
 
         let translationText = firstThreeRows.map((row, index) => {
             return `${index + 1}. ${row.Source}\n${row.Translation}`;
@@ -443,7 +444,11 @@ async function processFile(firstThreeRows, originalRows, revisedData) {
 
         console.log(translationText);
 
-        const prompt = `${translationText}\n\n${activePrompt}`;
+        const prompt = `${translationText}\n\n${activePromptText}`;
+
+        console.log(prompt);
+
+        console.log(prompt);
 
         let messages = [
             {
@@ -574,6 +579,9 @@ app.post('/excel-file', upload.single('file'), async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Find the active prompt associated with the user
+        const activePrompt = await Prompt.findOne({ user: userId, isSelected: true });
+
         // Read the uploaded Excel file
         const workbook = xlsx.readFile(req.file.path);
         const sheetName = workbook.SheetNames[0];
@@ -587,12 +595,12 @@ app.post('/excel-file', upload.single('file'), async (req, res) => {
             const batch = worksheet.slice(i, i + 3); // Get 3 rows at a time
             const firstThreeRows = batch.map(row => ({
                 'In-cue/Out-cue': row['In-cue/Out-cue'] || 'N/A', // Fallback value for the time code
-                Source: row['Source'] || 'N/A', // Fallback value for source
-                Translation: row['Translation'] || 'N/A' // Fallback value for translation
+                Source: row['Source'] || row['source'] || 'N/A', // Fallback value for source
+                Translation: row['Translation'] || row['translation'] || 'N/A' // Fallback value for translation
             }));
 
             // Process the batch
-            await processFile(firstThreeRows, batch, revisedData);
+            await processFile(firstThreeRows, batch, revisedData, activePrompt);
 
             i += 3; // Move to the next set of rows
 
@@ -647,6 +655,8 @@ app.post('/excel-file', upload.single('file'), async (req, res) => {
 });
 
 
+
+
 function extractSubtitlesFromHTML(htmlContent) {
     const $ = cheerio.load(htmlContent);
 
@@ -677,6 +687,9 @@ app.post('/html-file', upload.single('file'), async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Find the active prompt associated with the user
+        const activePrompt = await Prompt.findOne({ user: userId, isSelected: true });
+
         // Load the uploaded HTML file
         const htmlContent = fs.readFileSync(req.file.path, 'utf-8');
 
@@ -691,12 +704,12 @@ app.post('/html-file', upload.single('file'), async (req, res) => {
             const batch = worksheet.slice(i, i + 3); // Get 3 rows at a time
             const firstThreeRows = batch.map(row => ({
                 'In-cue/Out-cue': row['In-cue/Out-cue'] || 'N/A', // Fallback value for the time code
-                Source: row['Source'] || 'N/A', // Fallback value for source
-                Translation: row['Translation'] || 'N/A' // Fallback value for translation
+                Source: row['Source'] || row['source'] || 'N/A', // Fallback value for source
+                Translation: row['Translation'] || row['translation'] || 'N/A' // Fallback value for translation
             }));
 
             // Process the batch
-            await processFile(firstThreeRows, batch, revisedData);
+            await processFile(firstThreeRows, batch, revisedData, activePrompt);
 
             i += 3; // Move to the next set of rows
 
@@ -704,23 +717,32 @@ app.post('/html-file', upload.single('file'), async (req, res) => {
             sendProgressUpdate(i, totalLines);
         }
 
-        // Create an XLSX workbook and sheet from the revised data
-        const xlsxWorkbook = xlsx.utils.book_new();
-        const xlsxWorksheet = xlsx.utils.json_to_sheet(revisedData);
-        xlsx.utils.book_append_sheet(xlsxWorkbook, xlsxWorksheet, 'Revised Translations');
-
-        // Write the XLSX workbook to a temporary file
-        const tempXlsxPath = `/tmp/revised-file.xlsx`;
-        xlsx.writeFile(xlsxWorkbook, tempXlsxPath);
-
-        // Now load the temporary XLSX file into ExcelJS for further formatting
+        // Create a new ExcelJS workbook and worksheet
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(tempXlsxPath);
-        const worksheetExcelJS = workbook.getWorksheet('Revised Translations');
+        const worksheetExcelJS = workbook.addWorksheet('Revised Translations');
 
-        // Apply bold formatting where necessary
-        worksheetExcelJS.eachRow((row, rowIndex) => {
-            row.eachCell({ includeEmpty: true }, (cell, colIndex) => {
+        // Add headers (titles) for the columns and apply bold formatting
+        const headers = ['In-cue/Out-cue', 'Source', 'Original Translation', 'Edited Translation', 'Explanation', 'Edit Type'];
+        const headerRow = worksheetExcelJS.addRow(headers);
+
+        // Apply bold formatting to the header row
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+        });
+
+        // Add the revised data to the worksheet
+        revisedData.forEach((row) => {
+            const newRow = worksheetExcelJS.addRow([
+                row['In-cue/Out-cue'],
+                row['Source'],
+                row['Translation'],
+                row['Edited Translation'],
+                row['Explanation'],
+                row['Edit Type']
+            ]);
+
+            // Apply bold formatting to specific cells based on the content
+            newRow.eachCell((cell, colNumber) => {
                 if (shouldBeBold(cell.value)) {
                     cell.font = { bold: true };
                 }
@@ -750,14 +772,20 @@ app.post('/html-file', upload.single('file'), async (req, res) => {
     }
 });
 
+
+
 app.get('/files', isAuthenticated, async (req, res) => {
     try {
         const userInfo = await User.findById(req.user._id);
+        let isAdmin = false;
+        if (userInfo.username == admin) {
+            isAdmin = true;
+        }
         if (!userInfo) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        res.render('files', { userInfo });
+        res.render('files', { userInfo, isAdmin });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Internal server error.' });
@@ -787,34 +815,49 @@ app.put('/settings/:id/edit', isAuthenticated, catchAsync(async (req, res, next)
 
 app.get('/admin', isAdmin, async (req, res) => {
     try {
+        const userInfo = await User.findById(req.user._id);
+        let isAdmin = false;
+        if (userInfo.username == admin) {
+            isAdmin = true;
+        }
         const users = await User.find({});
 
-        res.render('admin', {users});
+        res.render('admin', {users, isAdmin});
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Internal server error.' });
     }
 })
-app.get('/prompt', isAdmin, async (req, res) => {
+app.get('/prompt', isAuthenticated, async (req, res) => {
     try {
-        // Check if the database is empty
-        const promptCount = await Prompt.countDocuments({});
-        
+        const userInfo = await User.findById(req.user._id);
+        let isAdmin = false;
+        if (userInfo.username == admin) {
+            isAdmin = true;
+        }
+        // Get the logged-in user's ID
+        const userId = req.user._id;
+
+        // Check if the database is empty for this user
+        const promptCount = await Prompt.countDocuments({ user: userId });
+
         if (promptCount === 0) {
-            // If empty, insert the first prompt
+            // If empty, insert the first prompt associated with the user
             const firstPrompt = new Prompt({
                 prompt: "Please proofread and edit the subtitle translation for Traditional Chinese Taiwan. Make sure it's Chinese Taiwan, not Traditional Chinese Hong Kong. Please explain the changes and their type in english not chinese (typos, grammar, accuracy, fluency, formatting). Your response should be formatted in a table using the 'create_revised_translation_table' function, containing 3 columns: Edited Translation, Explanation in english, Edit Type in english.",
-                isSelected: true
+                name: "Default Prompt",
+                isSelected: true,
+                user: userId // Associate with the logged-in user
             });
 
             await firstPrompt.save();
         }
 
-        // Fetch all prompts from the database
-        const prompts = await Prompt.find({});
+        // Fetch all prompts associated with the logged-in user
+        const prompts = await Prompt.find({ user: userId });
 
         // Render the 'prompt' view with the retrieved prompts
-        res.render('prompt', { prompts });
+        res.render('prompt', { prompts, isAdmin });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Internal server error.' });
@@ -822,14 +865,18 @@ app.get('/prompt', isAdmin, async (req, res) => {
 });
 
 
-app.post('/prompt', isAdmin, async (req, res) => {
-    try {
-        const { prompt } = req.body;
 
-        // Create a new Prompt document
+app.post('/prompt', isAuthenticated, async (req, res) => {
+    try {
+        const { prompt, promptName } = req.body;
+        const userId = req.user._id; // Get the logged-in user's ID
+
+        // Create a new Prompt document associated with the user
         const newPrompt = new Prompt({
             prompt: prompt,
-            isSelected: false // Default value
+            name: promptName,
+            isSelected: false, // Default value
+            user: userId // Associate with the logged-in user
         });
 
         // Save the document to the database
@@ -843,20 +890,26 @@ app.post('/prompt', isAdmin, async (req, res) => {
     }
 });
 
-app.put('/prompt/:id', async (req, res) => {
+
+app.put('/prompt/:id', isAuthenticated, async (req, res) => {
     try {
-        const { prompt, isActive } = req.body;
-        
+        const { prompt, promptName, isActive } = req.body;
+        const userId = req.user._id; // Get the logged-in user's ID
+
         if (isActive === 'on') {
-            // If the current prompt is being activated, deactivate all other prompts
-            await Prompt.updateMany({}, { isSelected: false });
+            // If the current prompt is being activated, deactivate all other prompts for this user
+            await Prompt.updateMany({ user: userId }, { isSelected: false });
         }
 
-        // Find the prompt by ID and update its fields
-        await Prompt.findByIdAndUpdate(req.params.id, {
-            prompt: prompt,
-            isSelected: isActive === 'on' // Convert checkbox value to boolean
-        });
+        // Find the prompt by ID and user ID, then update its fields
+        await Prompt.findOneAndUpdate(
+            { _id: req.params.id, user: userId },
+            {
+                prompt: prompt,
+                name: promptName,
+                isSelected: isActive === 'on' // Convert checkbox value to boolean
+            }
+        );
 
         // Redirect or send a response after updating
         res.redirect('/prompt');
@@ -865,6 +918,28 @@ app.put('/prompt/:id', async (req, res) => {
         res.status(500).json({ message: 'Internal server error.' });
     }
 });
+
+app.delete('/prompt/:id', isAuthenticated, async (req, res) => {
+    try {
+        const userId = req.user._id; // Get the logged-in user's ID
+        const promptId = req.params.id; // Get the prompt's ID from the URL parameters
+
+        // Find the prompt by ID and user ID, then delete it
+        const deletedPrompt = await Prompt.findOneAndDelete({ _id: promptId, user: userId });
+
+        if (!deletedPrompt) {
+            return res.status(404).json({ message: 'Prompt not found or not authorized to delete this prompt.' });
+        }
+
+        // Redirect or send a response after deletion
+        res.redirect('/prompt');
+    } catch (error) {
+        console.error('Error deleting prompt:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

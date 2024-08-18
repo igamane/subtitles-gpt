@@ -102,6 +102,25 @@
                             <span>Generated Files</span>
                         </a>
                     </li>
+                    <% if (isAdmin) { %>
+                    <li class="nav-item active overview">
+                        <a href="/admin">
+                            <span class="icon material-symbols-outlined">
+                                group
+                                </span>
+                                <span>Users</span>
+                        </a>
+                    </li>
+                    <% } %>
+                    <li class="nav-item overview">
+                        <a href="/prompt">
+                            <span class="material-symbols-outlined">
+                                manufacturing
+                                </span>
+                                <span>Prompts</span>
+                        </a>
+                    </li>
+                    <% if (!isAdmin) { %>
                     <li class="nav-item overview">
                         <a href="/settings">
                             <span class="icon material-symbols-outlined">
@@ -110,6 +129,7 @@
                                 <span>Settings</span>
                         </a>
                     </li> 
+                    <% } %>
                     <!-- More nav items -->
                 </ul>
             </nav>

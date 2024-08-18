@@ -1,0 +1,2 @@
+- excel issue
+- how to reduce cost / adjust number of each run
